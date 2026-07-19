@@ -1,0 +1,13 @@
+server.port: 5124
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/notification
+    username: postgres
+    password: secret
+  jpa:
+    hibernate:
+      ddl-auto: none
+  liquibase:
+    change-log: classpath:liquibase/db.changelog-master.yaml
+    enabled: true

@@ -1,0 +1,19 @@
+package org.example.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.example.enumeration.PreferedChannel;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserPreferencesRequestDto {
+    private Long userId;
+    private boolean emailEnabled;
+    private boolean smsEnabled;
+    private boolean pushEnabled;
+    private boolean telegramEnabled;
+    private String telegramChatId;
+    private PreferedChannel preferedChannel;
+}
