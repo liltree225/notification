@@ -16,7 +16,7 @@ public class UserPreferencesMapper {
                 preferences.isPushEnabled(),
                 preferences.isTelegramEnabled(),
                 preferences.getTelegramChatId(),
-                preferences.getPreferedChannel());
+                preferences.getPreferredChannel());
     }
 
     public UserPreferences toEntity(UserPreferencesRequestDto requestDto){
@@ -27,7 +27,7 @@ public class UserPreferencesMapper {
         userPreferences.setPushEnabled(requestDto.isPushEnabled());
         userPreferences.setTelegramEnabled(requestDto.isTelegramEnabled());
         userPreferences.setTelegramChatId(requestDto.getTelegramChatId());
-        userPreferences.setPreferedChannel(requestDto.getPreferedChannel());
+        userPreferences.setPreferredChannel(requestDto.getPreferredChannel());
         return userPreferences;
 
     }

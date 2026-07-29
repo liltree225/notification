@@ -1,12 +1,14 @@
 package org.example.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.enumeration.PreferedChannel;
+import org.example.enumeration.PreferredChannel;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "user_preferences")
@@ -15,12 +17,20 @@ import org.example.enumeration.PreferedChannel;
 @AllArgsConstructor
 public class UserPreferences {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private Long userId;
     private boolean emailEnabled;
     private boolean smsEnabled;
     private boolean pushEnabled;
     private boolean telegramEnabled;
     private String telegramChatId;
-    private PreferedChannel preferedChannel;
+    @Enumerated(EnumType.STRING)
+    private PreferredChannel preferredChannel = PreferredChannel.EMAIL;
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
 
 }

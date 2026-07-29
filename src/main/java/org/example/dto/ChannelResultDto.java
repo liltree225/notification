@@ -3,15 +3,14 @@ package org.example.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.domain.Notification;
-import org.example.enumeration.PreferedChannel;
+import org.example.enumeration.PreferredChannel;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChannelResultDto {
 
-    private PreferedChannel channel;
+    private PreferredChannel channel;
     private boolean success;
     private Long notificationId;
     private String errorMessage;

@@ -6,10 +6,10 @@ import org.example.domain.NotificationChannelResults;
 import org.example.domain.UserPreferences;
 import org.example.dto.*;
 import org.example.enumeration.NotificationStatus;
-import org.example.enumeration.PreferedChannel;
+import org.example.enumeration.PreferredChannel;
 import org.example.enumeration.RetryStatus;
+import org.example.enumeration.Type;
 import org.example.mapper.NotificationMapper;
-import org.example.mapper.UserPreferencesMapper;
 import org.example.repository.NotificationDao;
 import org.example.repository.UserPreferencesDao;
 import org.example.service.NotificationService;
@@ -23,7 +23,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +30,6 @@ public class NotificationServiceImpl implements NotificationService {
     private final UserPreferencesDao userPreferencesDao;
     private final NotificationMapper notificationMapper;
     private final NotificationDao notificationDao;
-    private final NotificationService notificationService;
 
 
     @Override
@@ -44,29 +42,55 @@ public class NotificationServiceImpl implements NotificationService {
             preferences = new UserPreferences();
             preferences.setUserId(requestDto.getUserId());
             preferences.setEmailEnabled(true);
-            preferences.setPreferedChannel(PreferedChannel.EMAIL);
+            preferences.setPreferredChannel(PreferredChannel.EMAIL);
             userPreferencesDao.save(preferences);
         }
 
-        List<PreferedChannel> activeChannels = new ArrayList<>();
+        List<PreferredChannel> activeChannels = new ArrayList<>();
 
         if (preferences.isEmailEnabled()) {
-            activeChannels.add(PreferedChannel.EMAIL);
+            activeChannels.add(PreferredChannel.EMAIL);
         }
         if (preferences.isSmsEnabled()) {
-            activeChannels.add(PreferedChannel.SMS);
+            activeChannels.add(PreferredChannel.SMS);
         }
         if (preferences.isPushEnabled()) {
-            activeChannels.add(PreferedChannel.PUSH);
+            activeChannels.add(PreferredChannel.PUSH);
         }
         if (preferences.isTelegramEnabled()) {
-            activeChannels.add(PreferedChannel.TELEGRAM);
+            activeChannels.add(PreferredChannel.TELEGRAM);
         }
 
         Notification notification = notificationMapper.toEntity(requestDto);
+        notification.setChannel(PreferredChannel.EMAIL);
+        notification.setType(Type.ORDER_CREATED);
+        notification.setStatus(NotificationStatus.PENDING);
+        notification.setCreatedAt(LocalDateTime.now());
+        if (notification.getSubject() == null) {
+            String subject = switch (requestDto.getType()) {
+                case ORDER_CANCELLED -> "Отмена заказа #" + requestDto.getOrderId();
+                case ORDER_PAID -> "Оплата заказа #" + requestDto.getOrderId();
+                case ORDER_SHIPPED -> "Заказ #" + requestDto.getOrderId() + " отправлен";
+                case ORDER_DELIVERED -> "Заказ #" + requestDto.getOrderId() + " доставлен";
+                default -> "Уведомление по заказу #" + requestDto.getOrderId();
+            };
+            notification.setSubject(subject);
+        }
+
+        if (notification.getMessage() == null) {
+            String message = switch (requestDto.getType()) {
+                case ORDER_CANCELLED -> "Отмена заказа #" + requestDto.getOrderId();
+                case ORDER_PAID -> "Оплата заказа #" + requestDto.getOrderId();
+                case ORDER_SHIPPED -> "Заказ #" + requestDto.getOrderId() + " отправлен";
+                case ORDER_DELIVERED -> "Заказ #" + requestDto.getOrderId() + " доставлен";
+                default -> "Уведомление по заказу #" + requestDto.getOrderId();
+            };
+            notification.setMessage(message);
+        }
+
         notificationDao.save(notification);
 
-        for (PreferedChannel channel : activeChannels) {
+        for (PreferredChannel channel : activeChannels) {
             NotificationChannelResults channelResult = new NotificationChannelResults();
             channelResult.setNotification(notification);
             if (Math.random() >= 0.95) {
@@ -77,20 +101,21 @@ public class NotificationServiceImpl implements NotificationService {
                 channelResult.setSuccess(true);
                 notification.setStatus(NotificationStatus.SENT);
             }
-            notification.getChannelResults().add(channelResult);
+
         }
+
         notificationDao.save(notification);
 
         List<ChannelResultDto> channelResultDtos = new ArrayList<>();
+        ChannelResultDto dto = new ChannelResultDto();
+        /*for (NotificationChannelResults resultEntity : notification.getChannelResults()) {
 
-        for (NotificationChannelResults resultEntity : notification.getChannelResults()) {
-            ChannelResultDto dto = new ChannelResultDto();
             dto.setChannel(resultEntity.getChannel());
             dto.setSuccess(resultEntity.isSuccess());
             dto.setErrorMessage(resultEntity.getErrorMessage());
             dto.setNotificationId(resultEntity.getNotification().getId());
             channelResultDtos.add(dto);
-        }
+        }*/
         responseDto.setChannelResults(channelResultDtos);
 
         boolean isAnySuccess = channelResultDtos.stream().anyMatch(ChannelResultDto::isSuccess);
@@ -132,7 +157,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public NotificationDetailResponseDto notificationMarkAsRead(Long id) {
         Notification notification = notificationDao.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notification с ID " + id + " не найден"));
-        notification.setRead(true);
+        //notification.setRead(true);
         notificationDao.save(notification);
         return notificationMapper.toDetailDto(notification);
     }
@@ -149,32 +174,32 @@ public class NotificationServiceImpl implements NotificationService {
                 Notification notification = notificationDao.findById(id)
                         .orElseThrow(() -> new RuntimeException("Notification not found"));
 
-                if (notification.getStatus().name().equals("FAILED")){
-                    notificationService.sendMessage(notificationMapper.toSendRequestDto(notification));
-                    if (notification.getStatus().name().equals("SENT")){
+                if (notification.getStatus().name().equals("FAILED")) {
+                    sendMessage(notificationMapper.toSendRequestDto(notification));
+                    if (notification.getStatus().name().equals("SENT")) {
                         successCount++;
                         results.add(new RetryResultsDto(id, true, null, RetryStatus.SENT));
                         notificationDao.save(notification);
-                    }else {
+                    } else {
                         notificationDao.save(notification);
                         throw new RuntimeException("Notification failed");
                     }
-                } else if (notification.getStatus().name().equals("SENT") ||notification.getStatus().name().equals("PENDING") ) {
-                    if (requestDto.isForceRetry()){
-                        notificationService.sendMessage(notificationMapper.toSendRequestDto(notification));
-                        if (notification.getStatus().name().equals("SENT")){
+                } else if (notification.getStatus().name().equals("SENT") || notification.getStatus().name().equals("PENDING")) {
+                    if (requestDto.isForceRetry()) {
+                        sendMessage(notificationMapper.toSendRequestDto(notification));
+                        if (notification.getStatus().name().equals("SENT")) {
                             successCount++;
                             results.add(new RetryResultsDto(id, true, null, RetryStatus.SENT));
                             notificationDao.save(notification);
-                        }else {
+                        } else {
                             notificationDao.save(notification);
                             throw new RuntimeException("Notification failed");
                         }
-                    }else {
+                    } else {
                         throw new RuntimeException("Notification is not in FAILED status and forceRetry is false");
                     }
                 }
-            } catch (Exception e){
+            } catch (Exception e) {
                 failedCount++;
                 results.add(new RetryResultsDto(id, false, null, RetryStatus.FAILED));
             }

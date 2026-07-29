@@ -32,7 +32,7 @@ public class PreferencesServiceImpl implements PreferencesService {
         preferences.setSmsEnabled(requestDto.isSmsEnabled());
         preferences.setPushEnabled(requestDto.isPushEnabled());
         preferences.setTelegramEnabled(requestDto.isTelegramEnabled());
-        preferences.setPreferedChannel(requestDto.getPreferedChannel());
+        preferences.setPreferredChannel(requestDto.getPreferredChannel());
 
         if (requestDto.isTelegramEnabled()) {
             if (requestDto.getTelegramChatId() == null) {

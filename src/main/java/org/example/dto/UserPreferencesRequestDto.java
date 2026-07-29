@@ -3,7 +3,7 @@ package org.example.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.enumeration.PreferedChannel;
+import org.example.enumeration.PreferredChannel;
 
 @Data
 @NoArgsConstructor
@@ -15,5 +15,5 @@ public class UserPreferencesRequestDto {
     private boolean pushEnabled;
     private boolean telegramEnabled;
     private String telegramChatId;
-    private PreferedChannel preferedChannel;
+    private PreferredChannel preferredChannel;
 }

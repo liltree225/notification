@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.enumeration.NotificationStatus;
-import org.example.enumeration.PreferedChannel;
+import org.example.enumeration.PreferredChannel;
 
 import java.time.LocalDateTime;
 
@@ -17,7 +17,7 @@ public class NotificationSummaryResponseDto {
     private String type;
     private String subject;
     private String message;
-    private PreferedChannel channel;
+    private PreferredChannel channel;
     private NotificationStatus status;
     private LocalDateTime sentAt;
 }

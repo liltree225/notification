@@ -1,6 +1,6 @@
 package org.example.enumeration;
 
-public enum PreferedChannel {
+public enum PreferredChannel {
 
     EMAIL,SMS,PUSH,TELEGRAM
 }
