@@ -11,3 +11,7 @@ spring:
   liquibase:
     change-log: classpath:liquibase/db.changelog-master.yaml
     enabled: false
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
