@@ -50,6 +50,23 @@ CREATE TABLE IF NOT EXISTS notification_templates (
     UNIQUE (type, channel)
 );
 
+CREATE TABLE inbox (
+    id UUID PRIMARY KEY,                  -- Идентичен ID из Kafka message header или generate
+    aggregate_id UUID NOT NULL,           -- ID заказа (order_id)
+    aggregate_type VARCHAR(255) NOT NULL, -- Тип события
+    payload JSONB NOT NULL,               -- Данные события
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    processed_at TIMESTAMP,               -- Когда обработано
+    is_processed BOOLEAN DEFAULT FALSE,   -- Флаг обработки
+    error_message TEXT,                   -- Ошибка при обработке (если была)
+    status VARCHAR(50) DEFAULT 'RECEIVED' -- RECEIVED, PROCESSED, FAILED
+);
+
+CREATE INDEX idx_inbox_processed ON inbox(is_processed, created_at);
+CREATE INDEX idx_inbox_status ON inbox(status, created_at);
+CREATE UNIQUE INDEX idx_inbox_idempotency ON inbox(aggregate_id, aggregate_type);
+
+
 -- ============================================================
 -- ИНДЕКСЫ
 -- ============================================================

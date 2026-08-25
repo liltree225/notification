@@ -1,20 +1,63 @@
 package kafka.consumer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.headers.Header;
+import kafka.inbox.InboxEvent;
+import kafka.inbox.InboxEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.dto.NotificationSendRequestDto;
-import org.example.service.NotificationService;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class NotificationConsumer {
-    private final NotificationService service;
-    @KafkaListener(topics = "notification")
-    public void listen(NotificationSendRequestDto requestDto){
-        log.info("получено" + requestDto.getOrderId());
-        service.sendMessage(requestDto);
+    private final InboxEventRepository inboxEventRepository;
+    private final ObjectMapper objectMapper;
+
+    @KafkaListener(topics = "order-events", groupId = "notification-service")
+    public void listen(String message,
+                       @Header(KafkaHeaders.RECEIVED_KEY) String messageKey,
+                       @Header(KafkaHeaders.TIMESTAMP) long timestamp) {
+        log.info("Received message from Kafka. Key: {}", messageKey);
+
+        try {
+            // Парсим payload
+            NotificationSendRequestDto dto = objectMapper.readValue(
+                    message,
+                    NotificationSendRequestDto.class
+            );
+
+            // Проверяем идемпотентность - есть ли уже в INBOX
+            Optional<InboxEvent> existing = inboxEventRepository
+                    .findByAggregateIdAndType(dto.getOrderId(), "ORDER_CREATED");
+
+            if (existing.isPresent()) {
+                log.warn("Event already processed. OrderId: {}", dto.getOrderId());
+                return;
+            }
+
+            // Сохраняем в INBOX для дальнейшей обработки
+            InboxEvent event = new InboxEvent();
+            event.setId(UUID.randomUUID());
+            event.setAggregateId(dto.getOrderId());
+            event.setAggregateType("ORDER_CREATED");
+            event.setPayload(message);
+            event.setStatus("RECEIVED");
+
+            inboxEventRepository.save(event);
+            log.info("Event saved to inbox. OrderId: {}", dto.getOrderId());
+
+        } catch (Exception e) {
+            log.error("Error processing Kafka message: {}", e.getMessage(), e);
+
+        }
     }
 }
+

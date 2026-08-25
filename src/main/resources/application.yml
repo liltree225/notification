@@ -13,5 +13,20 @@ spring:
     enabled: false
   kafka:
     bootstrap-servers: localhost:9092
+    consumer:
+      group-id: notification-service
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: "*"
     producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health,metrics
+    endpoint:
+      health:
+        show-details: always
