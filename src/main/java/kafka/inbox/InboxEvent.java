@@ -19,15 +19,16 @@ import java.util.UUID;
 @NoArgsConstructor
 public class InboxEvent {
     @Id
-    private UUID id; // Уникальный ID для идемпотентности
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id; // Уникальный ID для идемпотентности
 
     @Column(nullable = false)
-    private UUID aggregateId; // order_id
+    private Long aggregateId; // order_id
 
     @Column(nullable = false, length = 255)
     private String aggregateType;
 
-    @Column(columnDefinition = "JSONB", nullable = false)
+    @Column(nullable = false)
     private String payload;
 
     @Column(nullable = false, updatable = false)

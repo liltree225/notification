@@ -20,7 +20,7 @@ public class InboxProcessor {
     private final InboxEventRepository inboxEventRepository;
     private final NotificationService notificationService;
     private final ObjectMapper objectMapper;
-    private final MeterRegistry meterRegistry;
+
 
     private static final int BATCH_SIZE = 10;
 
@@ -31,7 +31,7 @@ public class InboxProcessor {
 
         try {
             List<InboxEvent> unprocessed = inboxEventRepository
-                    .findUnprocessedEvents(PageRequest.of(0, BATCH_SIZE));
+                    .findUnprocessedEvents();
 
             if (unprocessed.isEmpty()) {
                 log.debug("No unprocessed events");
@@ -45,9 +45,9 @@ public class InboxProcessor {
             }
         } catch (Exception e) {
             log.error("Error in processInboxEvents: {}", e.getMessage(), e);
-            meterRegistry.counter("inbox.failed.total").increment();
+
         }
-        meterRegistry.counter("inbox.processed.total").increment();
+
     }
 
     private void processEvent(InboxEvent event) {

@@ -1,7 +1,7 @@
 package kafka.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.v3.oas.annotations.headers.Header;
+
 import kafka.inbox.InboxEvent;
 import kafka.inbox.InboxEventRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.dto.NotificationSendRequestDto;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -45,7 +46,6 @@ public class NotificationConsumer {
 
             // Сохраняем в INBOX для дальнейшей обработки
             InboxEvent event = new InboxEvent();
-            event.setId(UUID.randomUUID());
             event.setAggregateId(dto.getOrderId());
             event.setAggregateType("ORDER_CREATED");
             event.setPayload(message);

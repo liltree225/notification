@@ -51,10 +51,10 @@ CREATE TABLE IF NOT EXISTS notification_templates (
 );
 
 CREATE TABLE inbox (
-    id UUID PRIMARY KEY,                  -- Идентичен ID из Kafka message header или generate
-    aggregate_id UUID NOT NULL,           -- ID заказа (order_id)
+    id BIGSERIAL PRIMARY KEY,                  -- Идентичен ID из Kafka message header или generate
+    aggregate_id BIGINT NOT NULL,           -- ID заказа (order_id)
     aggregate_type VARCHAR(255) NOT NULL, -- Тип события
-    payload JSONB NOT NULL,               -- Данные события
+    payload VARCHAR(1024) NOT NULL,               -- Данные события
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     processed_at TIMESTAMP,               -- Когда обработано
     is_processed BOOLEAN DEFAULT FALSE,   -- Флаг обработки

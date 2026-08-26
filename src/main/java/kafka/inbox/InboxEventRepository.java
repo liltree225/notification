@@ -10,14 +10,14 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface InboxEventRepository extends JpaRepository<InboxEvent, UUID> {
+public interface InboxEventRepository extends JpaRepository<InboxEvent, Long> {
     @Query("SELECT i FROM InboxEvent i WHERE i.isProcessed = false AND i.status = 'RECEIVED' ORDER BY i.createdAt ASC")
-    List<InboxEvent> findUnprocessedEvents(Pageable pageable);
+    List<InboxEvent> findUnprocessedEvents();
 
     @Query("SELECT COUNT(i) FROM InboxEvent i WHERE i.isProcessed = false")
     long countUnprocessed();
 
     @Query("SELECT i FROM InboxEvent i WHERE i.aggregateId = ?1 AND i.aggregateType = ?2")
-    Optional<InboxEvent> findByAggregateIdAndType(UUID aggregateId, String aggregateType);
+    Optional<InboxEvent> findByAggregateIdAndType(Long aggregateId, String aggregateType);
 }
 
