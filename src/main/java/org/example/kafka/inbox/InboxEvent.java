@@ -1,14 +1,11 @@
-package kafka.inbox;
+package org.example.kafka.inbox;
 
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
-// notification/src/main/java/kafka/inbox/InboxEvent.java
 @Entity
 @Table(name = "inbox", indexes = {
         @Index(name = "idx_inbox_processed", columnList = "is_processed,created_at"),

@@ -1,9 +1,9 @@
-package kafka.consumer;
+package org.example.kafka.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import kafka.inbox.InboxEvent;
-import kafka.inbox.InboxEventRepository;
+import org.example.kafka.inbox.InboxEvent;
+import org.example.kafka.inbox.InboxEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.dto.NotificationSendRequestDto;
@@ -13,7 +13,6 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -24,8 +23,7 @@ public class NotificationConsumer {
 
     @KafkaListener(topics = "order-events", groupId = "notification-service")
     public void listen(String message,
-                       @Header(KafkaHeaders.RECEIVED_KEY) String messageKey,
-                       @Header(KafkaHeaders.TIMESTAMP) long timestamp) {
+                       @Header(KafkaHeaders.RECEIVED_KEY) String messageKey) {
         log.info("Received message from Kafka. Key: {}", messageKey);
 
         try {

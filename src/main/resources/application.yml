@@ -2,7 +2,7 @@ server.port: 6243
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/notification
+    url: jdbc:postgresql://localhost:5433/notification_db
     username: postgres
     password: secret
   jpa:
